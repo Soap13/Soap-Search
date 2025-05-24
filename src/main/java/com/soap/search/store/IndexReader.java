@@ -17,7 +17,12 @@ public class IndexReader extends IndexInput {
     private long fileLength;
 
     public IndexReader(String fieldPath) throws IOException {
-        raf = new RandomAccessFile(fieldPath, "r");
+        File f=new File(fieldPath);
+        if(f.exists()) {
+            raf = new RandomAccessFile(fieldPath, "r");
+        }else{
+            Log.error("词频文件:{},不存在创建",fieldPath);
+        }
         currentBuffer = new byte[IndexWriter.BUFFER_SIZE];
         currentBufferIndex = 0;
         bufferLength = 0;
@@ -39,7 +44,9 @@ public class IndexReader extends IndexInput {
 
     @Override
     public void close() throws IOException {
-          raf.close();
+          if(null!=raf){
+              raf.close();
+          }
     }
 
     @Override

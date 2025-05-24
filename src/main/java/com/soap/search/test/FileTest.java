@@ -21,10 +21,10 @@ public class FileTest {
 //        f.test4();
         //f.test5(2);
         //f.testIK();
-        f.testTermFreq();
+//        f.testTermFreq();
 //        f.search();
         //f.searchTerOffet();
-        //f.testSearch();
+        f.testSearch();
     }
     public void testSearch() throws IOException {
         Search search=Search.getSearch();
