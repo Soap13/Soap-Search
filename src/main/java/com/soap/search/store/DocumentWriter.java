@@ -122,9 +122,9 @@ public class DocumentWriter {
              Field f = doc.getFields().get(i);
              if (f.isAnalyzed()) { //是否分词
                  termMap = IKUtil.IDAnalyzer(f.getValue());
-//                 for (Map.Entry<String, ArrayList<Integer>> en : termMap.entrySet()) {
-//                    Log.info(en.getKey() + " " + en.getValue().size());
-//                 }
+                 for (Map.Entry<String, ArrayList<Integer>> en : termMap.entrySet()) {
+                    Log.info(en.getKey() + " " + en.getValue().size());
+                 }
              } else {
                  termMap = new HashMap<String, ArrayList<Integer>>();
                  termMap.put(f.getValue(), new ArrayList<Integer>());

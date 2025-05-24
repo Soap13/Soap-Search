@@ -35,6 +35,7 @@ public class DocumentReader {
          ChecksumIndexInput input=new ChecksumIndexInput(dfReader);
          doc.setDocNum(docIndex);
          doc.setFieldOffset(position);
+         input.seek(position);
          int numFields = input.readInt();
          for(int i=0;i<numFields;i++){
              String key=input.readString();

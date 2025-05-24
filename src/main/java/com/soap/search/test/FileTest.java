@@ -24,8 +24,28 @@ public class FileTest {
 //        f.testTermFreq();
 //        f.search();
         //f.searchTerOffet();
-        f.testSearch();
+
+//        f.writerDoc("D:/go_work/文章/小说/平凡的世界.txt");
+//        f.writerDoc("D:/go_work/文章/小说/活着.txt");
+          f.writerDoc("D:/go_work/文章/小说/围城.txt");
+          f.testSearch();
+//        f.printSearch();
     }
+
+    public void printSearch() throws IOException {
+        DocumentReader reader=new DocumentReader();
+        Document doc = reader.ReadDocument(2);
+        for(Field fe:doc.getFields()){
+            Log.info(fe.getName()+" "+fe.getValue());
+        }
+
+        List<TermFrq> termList=reader.readTermFrq();
+        for(int i=0;i<termList.size();i++){
+            TermFrq t=termList.get(i);
+            Log.info("词：{}，文档{},词频{}",t.getTerm(),Arrays.toString(t.getDocnum().toArray()),Arrays.toString(t.getFrq().toArray()));
+        }
+    }
+
     public void testSearch() throws IOException {
         Search search=Search.getSearch();
         search.resetSkipList();
@@ -85,7 +105,7 @@ public class FileTest {
         }
 
         Document doc1=new Document();
-        doc1.initFile(new File("D:/go_work/文章/小说/活着.txt"));
+        doc1.initFile(new File("D:/go_work/文章/小说/平凡的世界.txt"));
         DocumentWriter writer=new DocumentWriter();
         writer.writeDocument(doc1);
         docList.add(doc1);
@@ -100,12 +120,22 @@ public class FileTest {
 
         writer.writeTermOffSet(docList);
 
-        Map<String, TermOffset> termMap=reader.readTermOffSet();
-        for(Map.Entry<String, TermOffset> en:termMap.entrySet()){
-            for(Map.Entry<String, List<Integer>>to:en.getValue().getFo().entrySet()){
-              Log.info("词：[{}]，文档:[{}],词偏移量:[{}]",en.getKey(),to.getKey(),Arrays.toString(to.getValue().toArray()));
-            }
-        }
+//        Map<String, TermOffset> termMap=reader.readTermOffSet();
+//        for(Map.Entry<String, TermOffset> en:termMap.entrySet()){
+//            for(Map.Entry<String, List<Integer>>to:en.getValue().getFo().entrySet()){
+//              Log.info("词：[{}]，文档:[{}],词偏移量:[{}]",en.getKey(),to.getKey(),Arrays.toString(to.getValue().toArray()));
+//            }
+//        }
+    }
+    public void writerDoc(String path) throws IOException, InvocationTargetException, IllegalAccessException { Document doc1=new Document();
+        List<Document> docList=new ArrayList<>();
+        doc1.initFile(new File(path));
+        DocumentWriter writer=new DocumentWriter();
+        writer.writeDocument(doc1);
+        docList.add(doc1);
+        writer.writeTermFrq(docList);
+        writer.writeTermOffSet(docList);
+
     }
 
     public void testIK(){
