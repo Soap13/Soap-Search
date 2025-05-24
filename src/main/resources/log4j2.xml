@@ -1,0 +1,88 @@
+<!--日志级别 OFF、FATAL、ERROR、WARN、INFO、DEBUG、TRACE、ALL  -->
+
+<!--monitorInterval属性值（秒数）为一个非零值来让Log4j每隔指定的秒数来重新读取配置文件，可以用来动态应用Log4j配置-->
+<!--<Configuration status="debug" monitorInterval="30">-->
+
+<!--
+Log4j 支持多种格式化参数来定制日志输出的内容和形式。以下是一些常用的格式化参数：
+%d：打印日志时间戳，默认格式为 ISO8601 (yyyy-MM-dd HH:mm:ss,SSS)，可以自定义格式。
+%t：打印产生日志的线程名。
+%p：打印日志级别，如 DEBUG, INFO, WARN, ERROR, FATAL。
+%m 或 %msg：打印日志消息。
+%c：打印记录日志的类名。
+%C：打印记录日志的类的全名。
+%l：打印更多的识别信息，通常是类名.方法名（可能还有其他信息，取决于具体的实现）。
+%L：打印生成日志语句所在的行号。
+%F：打印生成日志语句所在的文件名。
+%M：打印生成日志语句的方法名。
+%n：打印系统属性 line.separator 指定的换行符。
+%x 或 %X{key}：打印 MDC (Mapped Diagnostic Context) 中的值，%X{key} 是获取 MDC 中指定 key 的值。
+%N：打印线程名策略（如果配置了的话）。
+%FQCN：打印第一个出现的日志记录器的完全限定类名。
+%highlight{...}：可以用来突出显示某些日志信息，通常结合其他转换模式使用。
+这些参数可以组合使用，以满足不同的日志记录需求。例如，%d{yyyy-MM-dd HH:mm:ss,SSS} [%t] %-5level %logger{36} - %msg%n 就是一个典型的日志输出格式，它包含了时间戳、线程名、日志级别、类名以及日志消息等内容。
+-->
+
+<Configuration status="INFO">
+    <!--用来自定义一些变量-->
+    <Properties>
+        <!--变量定义-->
+        <Property name="myPattern" value="%d [%t] %-5level %-5p %highlight{%c{1.}:%L} - %msg%n"/>
+        <Property name="dir_url">D:/logs</Property>
+<!--        <Property name="dir_url">/opt/logs</Property>-->
+        <Property name="splitSize">100 MB</Property>
+        <Property name="fileCount">10</Property>
+    </Properties>
+    <Appenders>
+        <!-- 控制台输出 -->
+        <Console name="Console" target="SYSTEM_OUT">
+<!--            <PatternLayout pattern="%d %highlight{[%traceId]} %-5p %highlight{%c{1.}:%L} - %m%n" />-->
+            <PatternLayout pattern="${myPattern}" />
+            <outputproperties>
+                <property name="log.log" value="${dir_url}/log-%d{yyyy-MM-dd-HH}-%i.log"/>
+            </outputproperties>
+        </Console>
+
+        <RollingFile name="IP_REQUEST_MSG" fileName="${dir_url}/IP_MSG.log" filePattern="${dir_url}/IP_MSG-%d{yyyy-MM-dd-HH}-%i.log">
+            <PatternLayout pattern="${myPattern}" />
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="${splitSize}"/>
+            </Policies>
+            <DefaultRolloverStrategy max="${fileCount}"/>
+        </RollingFile>
+
+        <RollingFile name="system" fileName="${dir_url}/system.log" filePattern="${dir_url}/system-%d{yyyy-MM-dd-HH}-%i.log">
+            <PatternLayout pattern="${myPattern}" />
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="${splitSize}"/>
+            </Policies>
+            <DefaultRolloverStrategy max="${fileCount}"/>
+        </RollingFile>
+        <!-- skywalking grpc 日志收集 8.4.0版本开始支持 -->
+<!--        <GRPCLogClientAppender name="grpc-log">-->
+<!--            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>-->
+<!--        </GRPCLogClientAppender>-->
+    </Appenders>
+    <Loggers>
+<!--        <logger name="com.a.eye.skywalking.ui" level="debug" additivity="false">-->
+<!--            <AppenderRef ref="Console"/>-->
+<!--            <AppenderRef ref="grpc-log"/>-->
+<!--        </logger>-->
+<!--        <logger name="org.apache.kafka" level="INFO"></logger>-->
+<!--        <logger name="org.apache.skywalking.apm.dependencies" level="INFO"></logger>-->
+<!--        <Root level="debug">-->
+<!--            <AppenderRef ref="Console"/>-->
+<!--            <AppenderRef ref="grpc-log"/>-->
+<!--        </Root>-->
+        <logger name="com.soap.filter.F1_IPFilter" level="debug" additivity="true">
+            <AppenderRef ref="IP_REQUEST_MSG"/>
+        </logger>
+
+        <Root level="debug">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="system"/>
+        </Root>
+    </Loggers>
+</Configuration>
