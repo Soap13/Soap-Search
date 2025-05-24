@@ -94,6 +94,41 @@ public class DocumentReader {
  }
 
     /**
+     * 词频读入 多线程
+     * @return
+     */
+    public List<TermFrq> readTermFrqThread() throws IOException {
+        long startTime = System.currentTimeMillis(); // 记录开始时间
+        Log.info("词频开始提取...");
+        Map<String,TermFrq> frqMap=new HashMap<String,TermFrq>();
+        IndexReader dfReader=new IndexReader(DocConstant.TERM_FRQ_PATH);
+        ChecksumIndexInput input=new ChecksumIndexInput(dfReader);
+        while(input.getFilePointer()>input.length()){
+            String term=input.readString();
+            TermFrq termFrq=frqMap.get(term);
+            if(termFrq==null){
+                termFrq=new TermFrq();
+                frqMap.put(term,termFrq);
+            }
+            termFrq.setTerm(term);
+            int size=input.readVInt();
+            for(int i=0;i<size;i++) {
+                termFrq.getDocnum().add(input.readVInt());
+                termFrq.getFrq().add(input.readVInt());
+            }
+            //reqList.add(termFrq);
+        }
+        input.close();
+        Log.info("词频提取结束...");
+        List<TermFrq> termFrqList = frqMap.values().stream()
+                .map(obj -> (TermFrq) obj)
+                .collect(Collectors.toList());
+        Log.info("===词频提取耗时：{}ms",(System.currentTimeMillis()-startTime)); // 记录开始时间);
+        return termFrqList;
+    }
+
+
+    /**
      * 词偏移量和位置分开吧
      */
     public Map<String,TermOffset> readTermOffSet() throws IOException {
