@@ -8,7 +8,7 @@ public class IndexWriter extends IndexOutput {
 
     private OutputStream outputStream;
 
-    static final int BUFFER_SIZE = 1024;
+    static final int BUFFER_SIZE = 4096;
 
     private byte[] currentBuffer;
     private int currentBufferIndex;

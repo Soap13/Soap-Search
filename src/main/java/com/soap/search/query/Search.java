@@ -41,14 +41,14 @@ public class Search {
      * 重置枷锁了，但是查询那里没同步
      * @throws IOException
      */
-    public void resetSkipList() throws IOException {
+    public void resetSkipList(boolean isTherad) throws IOException {
         try {
             if (lock.writeLock().tryLock(20, TimeUnit.SECONDS)) {
                 long startTime = System.currentTimeMillis(); // 记录开始时间
                 try {
                     skipList = new SkipList<>();//重置下
                     DocumentReader reader = new DocumentReader();
-                    List<TermFrq> termList = reader.readTermFrq();
+                    List<TermFrq> termList = isTherad? reader.readTermFrqThread() : reader.readTermFrq();
                     for (int i = 0; i < termList.size(); i++) {
                         TermFrq t = termList.get(i);
                         skipList.insertNode(t.getTerm(), t);

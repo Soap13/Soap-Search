@@ -12,6 +12,7 @@ public class DocConstant {
     public static final String FIELD_PATH="./ff";//域保存的路径
     public static final String DOC_FIELD_PATH="./dff";//文档和域的偏移位置
     public static final String TERM_FRQ_PATH="./tf";//词频文件
+    public static final String TERM_OFFSET_PATH="./tfo";//词偏移文件
     public static final String TERM_OFFSET="./tp";//词偏移量
 
     public static final byte FIELD_STORED = 0b00000001;//是否存储
@@ -23,5 +24,7 @@ public class DocConstant {
     public static final byte FIELD_INDEXED = 0b00000100;//存储了 参与搜索
     public static final byte FIELD_NOT_INDEXED = 0b00000000;//存储了 但不参与搜索
 
-    public static final int DOC_ID_LENGTH =1024; //1028*8=8224
+    public static final int DOC_ID_LENGTH =1024; //1024*8=8192
+
+    public static final int TERM_OFFSET_THREAD = 5;//词频个一组
 }

@@ -27,9 +27,11 @@ public class FileTest {
 
 //        f.writerDoc("D:/go_work/文章/小说/平凡的世界.txt");
 //        f.writerDoc("D:/go_work/文章/小说/活着.txt");
-          f.writerDoc("D:/go_work/文章/小说/围城.txt");
-          f.testSearch();
-//        f.printSearch();
+//        f.writerDoc("D:/go_work/文章/小说/围城.txt");
+//        f.writerDoc("D:/go_work/文章/小说/张爱玲文集.txt");
+
+        f.testSearch(false);
+//      f.printSearch();
     }
 
     public void printSearch() throws IOException {
@@ -46,9 +48,9 @@ public class FileTest {
         }
     }
 
-    public void testSearch() throws IOException {
+    public void testSearch(boolean isThread) throws IOException {
         Search search=Search.getSearch();
-        search.resetSkipList();
+        search.resetSkipList(isThread);
         Scanner scanner = new Scanner(System.in);
         while (true) {
             String command = scanner.nextLine();

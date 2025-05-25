@@ -27,8 +27,8 @@ public class IndexReader extends IndexInput {
         currentBufferIndex = 0;
         bufferLength = 0;
         bufferStart = 0;
-        File file=new File(fieldPath);
-        fileLength=file.length();
+        //File file=new File(fieldPath);
+        fileLength=f.length();
     }
     @Override
     public byte readByte() throws IOException {

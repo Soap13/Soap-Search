@@ -143,7 +143,13 @@ public class DocumentWriter {
      Log.info("词频开始写入...");
      IndexWriter writerDF = new IndexWriter(DocConstant.TERM_FRQ_PATH, true);
      ChecksumIndexOutput outputDF = new ChecksumIndexOutput(writerDF);
+
+     //词位置
+     IndexWriter writerDFO = new IndexWriter(DocConstant.TERM_OFFSET_PATH, true);
+     ChecksumIndexOutput outputDFO = new ChecksumIndexOutput(writerDFO);
+
      for (TermFrq tf:reqList) {
+         outputDFO.writeInt((int)(outputDF.getFilePointer()));//一个字节
          outputDF.writeString(tf.getTerm());
          outputDF.writeVInt(tf.getDocnum().size());
          for (int i=0;i<tf.getDocnum().size();i++) {
@@ -151,6 +157,7 @@ public class DocumentWriter {
              outputDF.writeVInt(tf.getFrq().get(i));
          }
      }
+     outputDFO.close();
      outputDF.close();
      Log.info("词频写入结束...");
      Log.info("===词频写入耗时：{}ms",(System.currentTimeMillis()-startTime)); // 记录开始时间);
