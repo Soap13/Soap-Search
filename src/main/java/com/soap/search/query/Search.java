@@ -148,7 +148,8 @@ public class Search {
                     doc.setScore(doc.getScore()+entry.getValue());
                 }
             }
-
+            //默认升序，这个降序
+            docList.sort(Comparator.comparingDouble(Document::getScore).reversed());
             Log.info("===搜搜耗时：{}ms", (System.currentTimeMillis() - startTime)); // 记录开始时间);
         }finally {
             lock.readLock().unlock();

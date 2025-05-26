@@ -86,7 +86,7 @@ public class FileTest {
 
             List<Document>docList=search.searchScore(commandList[0]);
 
-            Log.info("---结果---");
+            Log.info("---{}结果---",commandList[0]);
             for(Document doc:docList){
                 Log.info("-----------------");
                 Log.info("文档：{},得分{}",doc.getDocNum(),doc.getScore());
