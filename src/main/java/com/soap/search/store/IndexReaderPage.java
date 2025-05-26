@@ -55,7 +55,7 @@ public class IndexReaderPage extends IndexInput {
         long startTime = System.currentTimeMillis(); // 记录开始时间
         long position = 0;
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        while (bufferLength < fileLength) {
+        while (position < fileLength) {
             // 对齐到页边界
             long alignedPos = alignToPage(position);
             // 读取一页大小数据
@@ -70,7 +70,7 @@ public class IndexReaderPage extends IndexInput {
                 appendBuffer(baos, buffer);
                // Log.info("读取位置:{},实际读取字节数:{}",alignedPos, bytesRead);
             }
-            bufferLength = alignedPos + IndexWriter.BUFFER_SIZE; // 移动到下一页
+            position = alignedPos + IndexWriter.BUFFER_SIZE; // 移动到下一页
         }
         currentBuffer=baos.toByteArray();
         Log.info("===文件提取耗时：{}ms",(System.currentTimeMillis()-startTime)); // 记录开始时间);
