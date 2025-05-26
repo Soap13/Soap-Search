@@ -1,10 +1,7 @@
 package com.soap.search.util;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Random;
-import java.util.Scanner;
+import java.util.*;
 
 public class SkipList<K extends Comparable<K>, V> {
     /**
@@ -227,6 +224,30 @@ public class SkipList<K extends Comparable<K>, V> {
         return true;
     }
 
+
+    // 范围查询方法
+    public List<Node> rangeQuery(K startKey,K  endKey) {
+        List<Node> result = new ArrayList<>();
+        Node<K, V> current = this.header;
+
+        // 查找起始位置
+        for (int i = this.skipListLevel; i >= 0; i--) {
+            while (current.forwards.get(i) != null && current.forwards.get(i).getKey().compareTo(startKey) < 0) {
+                current = current.forwards.get(i);
+            }
+        }
+
+        // 移动到第0层的下一个节点，即可能是起始节点
+        current = current.forwards.get(0);
+
+        // 收集范围内的所有节点
+        while (current != null && current.getKey().compareTo(endKey)<=0) {
+            result.add(current);
+            current = current.forwards.get(0);
+        }
+
+        return result;
+    }
     /**
      * 持久化跳表内的数据
      */
@@ -356,7 +377,13 @@ public class SkipList<K extends Comparable<K>, V> {
                 System.out.println("Already saved skiplist.");
             } else if (commandList[0].equals("load")) {
                 skipList.loadFile();
-            } else {
+            } else if(commandList[0].equals("rangeQuery")){
+                List<Node> list = skipList.rangeQuery(commandList[1],commandList[2]);
+                for(Node n:list){
+                    System.out.println(n.getKey()+":"+n.getValue());
+                }
+            }
+            else {
                 System.out.println("********skiplist*********");
                 skipList.displaySkipList();
                 System.out.println("*************************");
