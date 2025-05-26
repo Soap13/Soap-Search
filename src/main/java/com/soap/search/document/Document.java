@@ -24,7 +24,7 @@ public class Document {
 
     private List<Field> fields=new ArrayList<>();
     private int position=-1;
-
+    private Double score=0d;
     /**
      * 文件域默认初始化
      * @param file
@@ -100,5 +100,13 @@ public class Document {
 
     public void setPosition(int position) {
         this.position = position;
+    }
+
+    public Double getScore() {
+        return score;
+    }
+
+    public void setScore(Double score) {
+        this.score = score;
     }
 }

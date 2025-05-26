@@ -10,7 +10,11 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Stream;
 
 public class FileTest {
     private static final Logger Log = LogManager.getLogger(FileTest.class);
@@ -29,9 +33,32 @@ public class FileTest {
 //        f.writerDoc("D:/go_work/文章/小说/活着.txt");
 //        f.writerDoc("D:/go_work/文章/小说/围城.txt");
 //        f.writerDoc("D:/go_work/文章/小说/张爱玲文集.txt");
-
+//        f.initDoc("D:/go_work/文章/小说");
         f.testSearch(false);
 //      f.printSearch();
+    }
+
+    public void initDoc(String fpath){
+        Path folder = Paths.get(fpath);
+        try (Stream<Path> stream = Files.list(folder)) {
+            stream
+                    .filter(path -> !Files.isDirectory(path)) // 过滤掉目录
+                    .forEach(path -> {
+                                try {
+                                    System.out.println("File: " + path.getFileName());
+                                    writerDoc(path.toString());
+                                } catch (IOException e) {
+                                    throw new RuntimeException(e);
+                                } catch (InvocationTargetException e) {
+                                    throw new RuntimeException(e);
+                                } catch (IllegalAccessException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            }
+                    );
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void printSearch() throws IOException {
@@ -55,12 +82,18 @@ public class FileTest {
         while (true) {
             String command = scanner.nextLine();
             String[] commandList = command.split(" ");
-            List<Document>docList=search.search(commandList[0]);
+            //List<Document>docList=search.search(commandList[0]);
+
+            List<Document>docList=search.searchScore(commandList[0]);
+
             Log.info("---结果---");
             for(Document doc:docList){
+                Log.info("-----------------");
+                Log.info("文档：{},得分{}",doc.getDocNum(),doc.getScore());
                for(Field f:doc.getFields()){
                    Log.info("文档：{}，字段名：{}，字段值：{}",doc.getDocNum(),f.getName(),f.getValue());
                }
+                Log.info("-----------------");
             }
         }
     }
