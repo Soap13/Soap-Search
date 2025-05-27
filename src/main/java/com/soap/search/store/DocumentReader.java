@@ -151,7 +151,6 @@ public class DocumentReader {
                 executorService.shutdownNow();
                 Thread.currentThread().interrupt(); // 重新设置中断标志
             }
-
             Log.info("词频提取结束...");
         }
         List<TermFrq> termFrqList = frqMap.values().stream()
@@ -180,7 +179,7 @@ public class DocumentReader {
                 ChecksumIndexInput input=new ChecksumIndexInput(dfReader);
                 input.seek(termList.get(0));//记录的位置因为事顺序的
                 for(int i=0;i<termList.size();i++){
-                    //Log.info("线程 [{}] 正在处理任务 #{}索引位置：{}", Thread.currentThread().getName(),taskId,termList.get(i));
+                    Log.info("线程 [{}] 正在处理任务 #{}索引位置：{}", Thread.currentThread().getName(),taskId,termList.get(i));
                     String term = input.readString();
                     TermFrq termFrq = frqMap.get(term);
                     if (termFrq == null) {

@@ -14,6 +14,7 @@ public class IndexReaderPage extends IndexInput {
     private static final Logger Log = LogManager.getLogger(IndexReaderPage.class);
     RandomAccessFile raf;
 
+    static final int BUFFER_SIZE = 4096*4;
     private byte[] currentBuffer;
     private int currentBufferIndex;
 
@@ -59,7 +60,7 @@ public class IndexReaderPage extends IndexInput {
             // 对齐到页边界
             long alignedPos = alignToPage(position);
             // 读取一页大小数据
-            ByteBuffer buffer = ByteBuffer.allocate(IndexWriter.BUFFER_SIZE);
+            ByteBuffer buffer = ByteBuffer.allocate(IndexReaderPage.BUFFER_SIZE);
             raf.getChannel().position(alignedPos);
             int bytesRead = raf.getChannel().read(buffer);
 
@@ -70,7 +71,7 @@ public class IndexReaderPage extends IndexInput {
                 appendBuffer(baos, buffer);
                // Log.info("读取位置:{},实际读取字节数:{}",alignedPos, bytesRead);
             }
-            position = alignedPos + IndexWriter.BUFFER_SIZE; // 移动到下一页
+            position = alignedPos + IndexReaderPage.BUFFER_SIZE; // 移动到下一页
         }
         currentBuffer=baos.toByteArray();
         Log.info("===文件提取耗时：{}ms",(System.currentTimeMillis()-startTime)); // 记录开始时间);
@@ -82,7 +83,7 @@ public class IndexReaderPage extends IndexInput {
         output.write(array, 0, array.length);
     }
     private static long alignToPage(long offset) {
-        return (offset / IndexWriter.BUFFER_SIZE) * IndexWriter.BUFFER_SIZE;
+        return (offset / IndexReaderPage.BUFFER_SIZE) * IndexReaderPage.BUFFER_SIZE;
     }
 
     @Override
