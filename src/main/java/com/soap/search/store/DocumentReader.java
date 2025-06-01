@@ -5,6 +5,7 @@ import com.soap.search.document.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -21,6 +22,16 @@ public class DocumentReader {
     private static final Logger Log = LogManager.getLogger(DocumentReader.class);
     private BitSet bs;
     private int curentDocNum=-1;
+    private ExecutorService executorService;
+
+     public DocumentReader() throws IOException {
+         Log.info("线程池初始化预热...");
+         executorService = Executors.newFixedThreadPool(DocConstant.TERM_OFFSET_THREAD);
+         // 预热线程
+         for (int i = 0; i < DocConstant.TERM_OFFSET_THREAD; i++) {
+             executorService.submit(() -> {});
+         }
+    }
 
  public Document ReadDocument(int docIndex) throws IOException {
      long startTime = System.currentTimeMillis(); // 记录开始时间
@@ -109,11 +120,8 @@ public class DocumentReader {
         Log.info("词频开始提取...");
         Map<String,TermFrq> frqMap=new ConcurrentHashMap<String,TermFrq>();
 
-        IndexReader dfReader=new IndexReader(DocConstant.TERM_FRQ_PATH);
-        ChecksumIndexInput input=new ChecksumIndexInput(dfReader);
-
         //词频位置
-        IndexReader dfoReader=new IndexReader(DocConstant.TERM_OFFSET_PATH);
+        IndexReaderPage dfoReader=new IndexReaderPage(DocConstant.TERM_OFFSET_PATH);
         ChecksumIndexInput inputo=new ChecksumIndexInput(dfoReader);
         long length=inputo.getFilePointer();//文件长度
         if(length>0) {
@@ -122,14 +130,21 @@ public class DocumentReader {
 //            if((int)length%DocConstant.TERM_OFFSET_THREAD>0){
 //                threadNum++;
 //            }
+            Log.info("词频个数:"+ length/4);
             List<Integer>termOffsetList=new ArrayList<Integer>();
             for(int i=0;i<length/4;i++){
                 termOffsetList.add(inputo.readInt());
             }
             int chunkSize = (int) Math.ceil((double) termOffsetList.size() / DocConstant.TERM_OFFSET_THREAD);
             List<List<Integer>> partitions = Lists.partition(termOffsetList, chunkSize);
+            for(int i=0;i<partitions.size()-1;i++){
+                partitions.get(i).add(partitions.get(i+1).get(0));
+            }
+            File f=new File(DocConstant.TERM_FRQ_PATH);
+            partitions.get( partitions.size()-1).add((int)f.length());
+
             // 创建固定大小的线程池
-            ExecutorService executorService = Executors.newFixedThreadPool(partitions.size());
+//            ExecutorService executorService = Executors.newFixedThreadPool(partitions.size());
             // 使用原子计数器模拟任务编号
             AtomicInteger taskCounter = new AtomicInteger(1);
 
@@ -175,11 +190,16 @@ public class DocumentReader {
         public void run() {
             Log.info("线程 [" + Thread.currentThread().getName() + "] 正在处理任务 #" + taskId);
             try {
-                IndexReader dfReader=new IndexReader(DocConstant.TERM_FRQ_PATH);
-                ChecksumIndexInput input=new ChecksumIndexInput(dfReader);
-                input.seek(termList.get(0));//记录的位置因为事顺序的
-                for(int i=0;i<termList.size();i++){
-                    Log.info("线程 [{}] 正在处理任务 #{}索引位置：{}", Thread.currentThread().getName(),taskId,termList.get(i));
+                int start = termList.get(0);
+                int end=termList.get(termList.size()-1);
+                IndexReaderPage dfReaderPage=new IndexReaderPage(DocConstant.TERM_FRQ_PATH,(end-start));
+                dfReaderPage.seek(start);
+                dfReaderPage.readAllFile();
+
+                ChecksumIndexInput input=new ChecksumIndexInput(dfReaderPage);
+                //input.seek(termList.get(0));//记录的位置因为事顺序的
+                for(int i=0;i<termList.size()-1;i++){
+                    //Log.info("线程 [{}] 正在处理任务 #{}索引位置：{}", Thread.currentThread().getName(),taskId,termList.get(i));
                     String term = input.readString();
                     TermFrq termFrq = frqMap.get(term);
                     if (termFrq == null) {

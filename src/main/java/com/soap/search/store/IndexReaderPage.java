@@ -22,6 +22,11 @@ public class IndexReaderPage extends IndexInput {
     private long bufferLength;
     private long fileLength;
 
+    /**
+     * 主动加载 seek默认0 主动readAllFile
+     * @param fieldPath
+     * @throws IOException
+     */
     public IndexReaderPage(String fieldPath) throws IOException {
         File f=new File(fieldPath);
         if(f.exists()) {
@@ -36,6 +41,28 @@ public class IndexReaderPage extends IndexInput {
         bufferStart = 0;
         fileLength=f.length();
         readAllFile();
+    }
+
+    /**
+     * 没有主动加载 需要先seek 在readAllFile
+     * @param fieldPath
+     * @param length
+     * @throws IOException
+     */
+    public IndexReaderPage(String fieldPath,long length) throws IOException {
+        File f=new File(fieldPath);
+        if(f.exists()) {
+            raf = new RandomAccessFile(fieldPath, "r");
+        }else{
+            Log.error("词频文件:{},不存在请创建",fieldPath);
+            throw new ExportException("不存在文件:"+fieldPath);
+        }
+        //currentBuffer = new byte[(int)f.length()];
+        currentBufferIndex = 0;
+        bufferLength = 0;
+        bufferStart = 0;
+        fileLength=length;
+        //readAllFile();//先设置seek
     }
     @Override
     public byte readByte() throws IOException {

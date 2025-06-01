@@ -26,5 +26,5 @@ public class DocConstant {
 
     public static final int DOC_ID_LENGTH =1024; //1024*8=8192
 
-    public static final int TERM_OFFSET_THREAD = 5;//词频个一组
+    public static final int TERM_OFFSET_THREAD = 3;//词频个一组
 }
