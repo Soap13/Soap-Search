@@ -34,7 +34,7 @@ public class FileTest {
 //        f.writerDoc("D:/go_work/文章/小说/围城.txt");
 //        f.writerDoc("D:/go_work/文章/小说/张爱玲文集.txt");
 //        f.initDoc("D:/go_work/文章/小说");
-        f.testSearch(false);
+        f.testSearch(true);
 //      f.printSearch();
     }
 

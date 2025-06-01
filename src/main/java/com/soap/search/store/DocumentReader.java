@@ -144,7 +144,7 @@ public class DocumentReader {
             partitions.get( partitions.size()-1).add((int)f.length());
 
             // 创建固定大小的线程池
-            ExecutorService executorService = Executors.newFixedThreadPool(partitions.size());
+            //ExecutorService executorService = Executors.newFixedThreadPool(partitions.size());
             // 使用原子计数器模拟任务编号
             AtomicInteger taskCounter = new AtomicInteger(1);
 
