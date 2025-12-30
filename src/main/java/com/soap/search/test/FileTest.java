@@ -29,13 +29,13 @@ public class FileTest {
 //        f.search();
         //f.searchTerOffet();
 
-//        f.writerDoc("D:/go_work/文章/小说/平凡的世界.txt");
+//        f.writerDoc("E:\\学习笔记\\写的文章\\Canal Adapter写不到ES问题排查_2025-03-23.md");
 //        f.writerDoc("D:/go_work/文章/小说/活着.txt");
 //        f.writerDoc("D:/go_work/文章/小说/围城.txt");
-//        f.writerDoc("D:/go_work/文章/小说/张爱玲文集.txt");
-//        f.initDoc("D:/go_work/文章/小说");
-        f.testSearch(true);
-//      f.printSearch();
+//        f.writerDoc("E:/个人文件夹/小说/张爱玲文集.txt");
+//        f.initDoc("E:/个人文件夹/小说");
+        f.testSearch(false);
+        f.printSearch();
     }
 
     public void initDoc(String fpath){
@@ -63,7 +63,7 @@ public class FileTest {
 
     public void printSearch() throws IOException {
         DocumentReader reader=new DocumentReader();
-        Document doc = reader.ReadDocument(2);
+        Document doc = reader.ReadDocument(1);
         for(Field fe:doc.getFields()){
             Log.info(fe.getName()+" "+fe.getValue());
         }
@@ -162,7 +162,8 @@ public class FileTest {
 //            }
 //        }
     }
-    public void writerDoc(String path) throws IOException, InvocationTargetException, IllegalAccessException { Document doc1=new Document();
+    public void writerDoc(String path) throws IOException, InvocationTargetException, IllegalAccessException {
+        Document doc1=new Document();
         List<Document> docList=new ArrayList<>();
         doc1.initFile(new File(path));
         DocumentWriter writer=new DocumentWriter();

@@ -2,11 +2,13 @@ package com.soap.search.store;
 
 import com.google.common.collect.Lists;
 import com.soap.search.document.*;
+import org.apache.commons.beanutils.BeanUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -115,7 +117,7 @@ public class DocumentReader {
      * 词频读入 多线程
      * @return
      */
-    public List<TermFrq> readTermFrqThread() throws IOException {
+    public List<TermFrq> readTermFrqThread() throws IOException, InvocationTargetException, IllegalAccessException {
         long startTime = System.currentTimeMillis(); // 记录开始时间
         Log.info("词频开始提取...");
         Map<String,TermFrq> frqMap=new ConcurrentHashMap<String,TermFrq>();
@@ -136,9 +138,20 @@ public class DocumentReader {
                 termOffsetList.add(inputo.readInt());
             }
             int chunkSize = (int) Math.ceil((double) termOffsetList.size() / DocConstant.TERM_OFFSET_THREAD);
-            List<List<Integer>> partitions = Lists.partition(termOffsetList, chunkSize);
+            List<List<Integer>> partitions2 = Lists.partition(termOffsetList, chunkSize);
+
+            // 1 行搞定：外层 ArrayList，内层 ArrayList，全部可修改
+            List<List<Integer>> partitions = partitions2.stream()
+                    .map(inner -> new ArrayList<>(inner))   // 内层拷贝
+                    .collect(Collectors.toCollection(ArrayList::new)); // 外层拷贝
+
             for(int i=0;i<partitions.size()-1;i++){
-                partitions.get(i).add(partitions.get(i+1).get(0));
+                //partitions.get(i).add(partitions.get(i+1).get(0));
+                List<Integer> currentPartition = partitions.get(i);
+                List<Integer> nextPartition = partitions.get(i + 1);
+                if(!nextPartition.isEmpty()) {
+                    currentPartition.add(nextPartition.get(0));
+                }
             }
             File f=new File(DocConstant.TERM_FRQ_PATH);
             partitions.get( partitions.size()-1).add((int)f.length());
@@ -192,9 +205,10 @@ public class DocumentReader {
             try {
                 int start = termList.get(0);
                 int end=termList.get(termList.size()-1);
+                Log.info("线程 [{}] 索引位置：{}-{}", Thread.currentThread().getName(),start,end);
                 IndexReaderPage dfReaderPage=new IndexReaderPage(DocConstant.TERM_FRQ_PATH,(end-start));
-                dfReaderPage.seek(start);
-                dfReaderPage.readAllFile();
+                //dfReaderPage.seek(start);
+                dfReaderPage.readAllFile2(start);
 
                 ChecksumIndexInput input=new ChecksumIndexInput(dfReaderPage);
                 //input.seek(termList.get(0));//记录的位置因为事顺序的

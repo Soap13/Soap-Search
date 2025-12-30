@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.example</groupId>
-    <artifactId>untitled</artifactId>
+    <artifactId>soap-search</artifactId>
     <version>1.0-SNAPSHOT</version>
     <properties>
         <java.version>11</java.version>
@@ -37,6 +37,13 @@
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>33.4.8-jre</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.antlr/antlr4-runtime -->
+        <dependency>
+            <groupId>org.antlr</groupId>
+            <artifactId>antlr4-runtime</artifactId>
+            <version>4.13.2</version>
         </dependency>
 
         <dependency>

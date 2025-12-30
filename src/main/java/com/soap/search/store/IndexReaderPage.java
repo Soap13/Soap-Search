@@ -21,7 +21,6 @@ public class IndexReaderPage extends IndexInput {
     private int bufferStart;
     private long bufferLength;
     private long fileLength;
-
     /**
      * 主动加载 seek默认0 主动readAllFile
      * @param fieldPath
@@ -99,6 +98,32 @@ public class IndexReaderPage extends IndexInput {
                // Log.info("读取位置:{},实际读取字节数:{}",alignedPos, bytesRead);
             }
             position = alignedPos + IndexReaderPage.BUFFER_SIZE; // 移动到下一页
+        }
+        currentBuffer=baos.toByteArray();
+        Log.info("===文件提取耗时：{}ms",(System.currentTimeMillis()-startTime)); // 记录开始时间);
+    }
+
+    public void readAllFile2(long pos) throws IOException {
+        long startTime = System.currentTimeMillis(); // 记录开始时间
+        long position = pos;
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        if(position-pos < fileLength) {
+            // 对齐到页边界
+            //long alignedPos = alignToPage(position);
+            // 读取一页大小数据
+            ByteBuffer buffer = ByteBuffer.allocate((int)fileLength);
+            raf.getChannel().position(position);
+            Log.info("开始读取位置:{},长度{}",position,fileLength);
+            int bytesRead = raf.getChannel().read(buffer);
+
+            // 处理 buffer 数据...
+            if (bytesRead > 0) {
+                buffer.flip();
+                position+=buffer.remaining();
+                appendBuffer(baos, buffer);
+                // Log.info("读取位置:{},实际读取字节数:{}",alignedPos, bytesRead);
+            }
+           // position = alignedPos + IndexReaderPage.BUFFER_SIZE; // 移动到下一页
         }
         currentBuffer=baos.toByteArray();
         Log.info("===文件提取耗时：{}ms",(System.currentTimeMillis()-startTime)); // 记录开始时间);

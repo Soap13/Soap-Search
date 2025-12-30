@@ -61,7 +61,10 @@ public class Search {
         } catch (InterruptedException e) {
            Thread.currentThread().interrupt();
             Log.error("线程被中断",e);
-    }
+        } catch (Exception e) {
+            Thread.currentThread().interrupt();
+            Log.error("线程被中断",e);
+        }
     }
 
     public List<Document> search(String key) throws IOException {
