@@ -73,6 +73,10 @@ public abstract class IndexOutput {
     writeByte((byte)i);
   }
 
+    public void writeGolomb(int i) throws IOException {
+       // GolombCodec.encode(i, GolombCodec.M);
+    }
+
   /** Writes a long as eight bytes.
    * @see IndexInput#readLong()
    */

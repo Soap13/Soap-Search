@@ -5,6 +5,7 @@ import com.soap.search.document.Document;
 import com.soap.search.document.Field;
 import com.soap.search.document.TermFrq;
 import com.soap.search.util.IKUtil;
+import com.soap.search.util.NumberUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import java.io.File;
@@ -235,4 +236,92 @@ public class DocumentWriter {
      Log.info("词位置写入结束...");
      Log.info("===词位置写入耗时：{}ms",(System.currentTimeMillis()-startTime)); // 记录开始时间);
  }
+
+    /**
+     * 词偏移量和位置分开吧
+     * @param docList
+     */
+    public void writeTermOffSetGolomb(List<Document> docList) throws IOException, InvocationTargetException, IllegalAccessException {
+        long startTime = System.currentTimeMillis(); // 记录开始时间
+        Log.info("词位置开始提取...");
+        Map<String, ArrayList<Integer>> termMap = null;
+        Map<String,Map<String,List<Integer>>>termOffset=new HashMap<>();
+        for(Document doc:docList) {
+            Log.info("文档:{},词位置开始提取...",doc.getDocNum());
+            for (int i = 0; i < doc.getFields().size(); i++) {
+                Field f = doc.getFields().get(i);
+                if (f.isAnalyzed()) { //是否分词
+                    termMap = IKUtil.IDAnalyzer(f.getValue());
+//                 for (Map.Entry<String, ArrayList<Integer>> en : termMap.entrySet()) {
+//                     Log.info(en.getKey() + " " + en.getValue().size());
+//                 }
+                } else {
+                    termMap = new HashMap<String, ArrayList<Integer>>();
+                    termMap.put(f.getValue(), new ArrayList<Integer>());
+                    termMap.get(f.getValue()).add(0);
+                }
+
+                Map<String, ArrayList<Integer>> copyMap = termMap.entrySet()
+                        .stream()
+                        .collect(Collectors.toMap(
+                                Map.Entry::getKey,
+                                e -> new ArrayList<>(e.getValue())
+                        ));
+
+
+                String termOf=doc.getDocNum()+":"+i;
+                for(Map.Entry<String,ArrayList<Integer>> en:copyMap.entrySet()){
+                    Map<String,List<Integer>> position=termOffset.get(en.getKey());
+                    if(position==null){
+                        position=new HashMap<>();
+                        termOffset.put(en.getKey(),position);
+                    }
+                    if(null==position.get(termOf)){
+                        position.put(termOf,new ArrayList<Integer>());
+                    }
+                    position.get(termOf).addAll(en.getValue());//注意顺序
+                    termOffset.put(en.getKey(),position);
+                }
+                termMap.clear();
+            }
+        }
+        Log.info("词位置开始写入...");
+        IndexWriter writerDF = new IndexWriter(DocConstant.TERM_OFFSET, true);
+        ChecksumIndexOutput outputDF = new ChecksumIndexOutput(writerDF);
+        for(Map.Entry<String,Map<String,List<Integer>>> en:termOffset.entrySet()){
+            String term=en.getKey();
+            outputDF.writeString(term);//词
+            outputDF.writeVInt(en.getValue().keySet().size());//域个数
+            for(Map.Entry<String,List<Integer>> en1:en.getValue().entrySet()){
+                String df=en1.getKey();
+                outputDF.writeString(df);
+                if(en1.getValue().size()==1){//1个数的时候
+                   outputDF.writeByte((byte)1);
+                   outputDF.writeVInt(en1.getValue().get(0));
+                   continue;
+                }else{
+                    outputDF.writeByte((byte)0);
+                }
+                int first=en1.getValue().get(0);
+                outputDF.writeVInt(first);
+                int[] delta=NumberUtil.calculateDifferencesToArray(en1.getValue());
+                int[] result = Arrays.copyOfRange(delta, 1, delta.length);
+                int m = NumberUtil.findBestM(en1.getValue());
+                byte[] offByte=GolombCodec.encode(result,m);
+                outputDF.writeVInt(m);
+                outputDF.writeVInt(offByte.length);
+                outputDF.writeBytes(offByte,offByte.length);
+//                int last=0;
+//                outputDF.writeVInt(en1.getValue().size());
+//                for(int i=0;i<en1.getValue().size();i++){
+//                    int current=en1.getValue().get(i)-last;
+//                    outputDF.writeVInt(current);
+//                    last=en1.getValue().get(i);
+//                }
+            }
+        }
+        outputDF.close();
+        Log.info("词位置写入结束...");
+        Log.info("===词位置写入耗时：{}ms",(System.currentTimeMillis()-startTime)); // 记录开始时间);
+    }
 }

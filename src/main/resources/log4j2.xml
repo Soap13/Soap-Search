@@ -43,14 +43,14 @@ Log4j 支持多种格式化参数来定制日志输出的内容和形式。以�
             </outputproperties>
         </Console>
 
-        <RollingFile name="IP_REQUEST_MSG" fileName="${dir_url}/IP_MSG.log" filePattern="${dir_url}/IP_MSG-%d{yyyy-MM-dd-HH}-%i.log">
-            <PatternLayout pattern="${myPattern}" />
-            <Policies>
-                <TimeBasedTriggeringPolicy/>
-                <SizeBasedTriggeringPolicy size="${splitSize}"/>
-            </Policies>
-            <DefaultRolloverStrategy max="${fileCount}"/>
-        </RollingFile>
+<!--        <RollingFile name="IP_REQUEST_MSG" fileName="${dir_url}/IP_MSG.log" filePattern="${dir_url}/IP_MSG-%d{yyyy-MM-dd-HH}-%i.log">-->
+<!--            <PatternLayout pattern="${myPattern}" />-->
+<!--            <Policies>-->
+<!--                <TimeBasedTriggeringPolicy/>-->
+<!--                <SizeBasedTriggeringPolicy size="${splitSize}"/>-->
+<!--            </Policies>-->
+<!--            <DefaultRolloverStrategy max="${fileCount}"/>-->
+<!--        </RollingFile>-->
 
         <RollingFile name="system" fileName="${dir_url}/system.log" filePattern="${dir_url}/system-%d{yyyy-MM-dd-HH}-%i.log">
             <PatternLayout pattern="${myPattern}" />
@@ -76,9 +76,9 @@ Log4j 支持多种格式化参数来定制日志输出的内容和形式。以�
 <!--            <AppenderRef ref="Console"/>-->
 <!--            <AppenderRef ref="grpc-log"/>-->
 <!--        </Root>-->
-        <logger name="com.soap.filter.F1_IPFilter" level="debug" additivity="true">
-            <AppenderRef ref="IP_REQUEST_MSG"/>
-        </logger>
+<!--        <logger name="com.soap.filter.F1_IPFilter" level="debug" additivity="true">-->
+<!--            <AppenderRef ref="IP_REQUEST_MSG"/>-->
+<!--        </logger>-->
 
         <Root level="debug">
             <AppenderRef ref="Console"/>

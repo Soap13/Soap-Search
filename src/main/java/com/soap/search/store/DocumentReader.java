@@ -2,6 +2,7 @@ package com.soap.search.store;
 
 import com.google.common.collect.Lists;
 import com.soap.search.document.*;
+import com.soap.search.util.NumberUtil;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -268,6 +269,60 @@ public class DocumentReader {
                     list.add(diff+lastPostion);
                     lastPostion+=diff;
                 }
+            }
+        }
+        input.close();
+        Log.info("词位置提取结束...");
+        Log.info("===词位置提取耗时：{}ms",(System.currentTimeMillis()-startTime)); // 记录开始时间);
+        return toMap;
+    }
+
+    /**
+     * 词偏移量和位置分开吧
+     */
+    public Map<String,TermOffset> readTermOffSetGolomb() throws IOException {
+        Log.info("词位置开始提取...");
+        long startTime = System.currentTimeMillis(); // 记录开始时间
+        Map<String,TermOffset> toMap=new HashMap<String, TermOffset>();
+        IndexReader toReader=new IndexReader(DocConstant.TERM_OFFSET);
+        ChecksumIndexInput input=new ChecksumIndexInput(toReader);
+        while(input.getFilePointer()>input.length()){
+            String term=input.readString();
+            TermOffset to=toMap.get(term);
+            if(to==null){
+                to=new TermOffset();
+                toMap.put(term,to);
+            }
+            to.setTerm(term);
+            int size=input.readVInt();//词-域个数
+            for(int i=0;i<size;i++) {
+                String key=input.readString();//词-域
+                List<Integer>list=to.getFo().get(key);
+                if(null==list){
+                    list=new ArrayList<Integer>();
+                    to.getFo().put(key,list);
+                }
+                byte flag=input.readByte();
+                if(flag==1){
+                    int m=input.readVInt();
+                    list.add(m);
+                    continue;
+                }
+                int first=input.readVInt();
+                int m=input.readVInt();
+                int offsetSize=input.readVInt();
+                final byte[] bytes = new byte[offsetSize];
+                input.readBytes(bytes, 0, offsetSize);
+                List<Integer> offsetNum=GolombCodec.decode(bytes,m);
+                offsetNum.add(0,first);
+                list.addAll(NumberUtil.restoreFromDifferences(offsetNum));
+                Log.info("词：{}，m:{},偏移量：{}，位置{}",term,m,offsetSize,Arrays.toString(list.toArray()));
+//                int lastPostion=0;
+//                for(int j=0;j<offsetSize;j++){
+//                    int diff=input.readVInt();
+//                    list.add(diff+lastPostion);
+//                    lastPostion+=diff;
+//                }
             }
         }
         input.close();
