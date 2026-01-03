@@ -10,9 +10,9 @@ import java.util.*;
 public class PrefixCompression {
 
     // 保存压缩后的词条：前缀长度 + 后缀
-    static class CompressedTerm {
-        int prefixLength;
-        String suffix;
+    public static class CompressedTerm {
+        public int prefixLength;
+        public String suffix;
 
         public CompressedTerm(int prefixLength, String suffix) {
             this.prefixLength = prefixLength;

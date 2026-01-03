@@ -27,13 +27,13 @@ public class FileTest {
         //f.testIK();
 //        f.testTermFreq();
 //        f.search();
-//        f.searchTerOffet();
+        f.searchTerOffet();
 
 //        f.writerDoc("E:\\学习笔记\\写的文章\\Canal Adapter写不到ES问题排查_2025-03-23.md");
 //        f.writerDoc("D:/go_work/文章/小说/活着.txt");
 //        f.writerDoc("D:/go_work/文章/小说/围城.txt");
 //        f.writerDoc("E:/个人文件夹/小说/张爱玲文集.txt");
-        f.initDoc("E:/个人文件夹/小说");
+//        f.initDoc("E:/个人文件夹/小说");
         f.testSearch(false);
         f.printSearch();
     }
@@ -101,7 +101,8 @@ public class FileTest {
     public void searchTerOffet() throws IOException {
         DocumentReader reader=new DocumentReader();
 //        Map<String, TermOffset> termMap=reader.readTermOffSet();
-        Map<String, TermOffset> termMap=reader.readTermOffSetGolomb();
+//        Map<String, TermOffset> termMap=reader.readTermOffSetGolomb();
+        Map<String, TermOffset> termMap=reader.readTermOffSetGolomb2();
         for(Map.Entry<String, TermOffset> en:termMap.entrySet()){
             for(Map.Entry<String, List<Integer>>to:en.getValue().getFo().entrySet()){
                 Log.info("词：[{}]，文档:[{}],词频:[{}]",en.getKey(),to.getKey(),Arrays.toString(to.getValue().toArray()));
@@ -171,7 +172,7 @@ public class FileTest {
         writer.writeDocument(doc1);
         docList.add(doc1);
         writer.writeTermFrq(docList);
-        writer.writeTermOffSetGolomb(docList);
+        writer.writeTermOffSetGolomb2(docList);
 //        writer.writeTermOffSet(docList);
     }
 
