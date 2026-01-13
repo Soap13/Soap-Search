@@ -1,10 +1,9 @@
 package com.soap.search.store;
 
 import com.google.common.collect.Lists;
-import com.soap.algorithm.PrefixCompression;
+import com.soap.search.algorithm.PrefixCompression;
 import com.soap.search.document.*;
 import com.soap.search.util.NumberUtil;
-import org.apache.commons.beanutils.BeanUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -45,14 +44,15 @@ public class DocumentReader {
          bs=DocumentCommon.getCurrentDocNum();
      }
      if(bs.get(docIndex)) {
-         IndexReader reader = new IndexReader(DocConstant.DOC_FIELD_PATH);
-         if(reader.getFilePointer()<=docIndex*4){
-             Log.error("文档:[{}]域位置信息丢失...",docIndex);
-             return null;//抛异常还是返回null？
-         }
-         reader.seek(docIndex * 4);
+         IndexReader reader = new IndexReader(DocConstant.getDocFieldPath(docIndex));
+//         if(reader.getFilePointer()<=docIndex*4){
+//             Log.error("文档:[{}]域位置信息丢失...",docIndex);
+//             return null;//抛异常还是返回null？
+//         }
+//         reader.seek(docIndex * 4);
+         reader.seek((DocConstant.getCurrentSegmentOffset(docIndex)) * 4);
          int position = reader.readInt();
-         IndexReader dfReader=new IndexReader(DocConstant.FIELD_PATH);
+         IndexReader dfReader=new IndexReader(DocConstant.getFieldPath(docIndex));
          ChecksumIndexInput input=new ChecksumIndexInput(dfReader);
          doc.setDocNum(docIndex);
          doc.setFieldOffset(position);
@@ -89,24 +89,31 @@ public class DocumentReader {
      //List<TermFrq> frqList=new ArrayList<>();
      Map<String,TermFrq> frqMap=new HashMap<String,TermFrq>();
      //IndexReader dfReader=new IndexReader(DocConstant.TERM_FRQ_PATH);
-     IndexReaderPage dfReader=new IndexReaderPage(DocConstant.TERM_FRQ_PATH);
-     ChecksumIndexInput input=new ChecksumIndexInput(dfReader);
-     while(input.getFilePointer()>input.length()){
-         String term=input.readString();
-         TermFrq termFrq=frqMap.get(term);
-         if(termFrq==null){
-             termFrq=new TermFrq();
-             frqMap.put(term,termFrq);
+     for(String tfPath:DocConstant.getTermFreqPaths()) {
+         try {
+             IndexReaderPage dfReader = new IndexReaderPage(tfPath);
+             ChecksumIndexInput input = new ChecksumIndexInput(dfReader);
+             while (input.getFilePointer() > input.length()) {
+                 String term = input.readString();
+                 TermFrq termFrq = frqMap.get(term);
+                 if (termFrq == null) {
+                     termFrq = new TermFrq();
+                     frqMap.put(term, termFrq);
+                 }
+                 termFrq.setTerm(term);
+                 int size = input.readVInt();
+                 for (int i = 0; i < size; i++) {
+                     termFrq.getDocnum().add(input.readVInt());
+                     termFrq.getFrq().add(input.readVInt());
+                 }
+                 //reqList.add(termFrq);
+             }
+             input.close();
+         }catch (IOException e){
+             Log.error("词频文件读取异常..."+tfPath);
+             Log.error("词频文件读取异常...",e);
          }
-         termFrq.setTerm(term);
-         int size=input.readVInt();
-         for(int i=0;i<size;i++) {
-             termFrq.getDocnum().add(input.readVInt());
-             termFrq.getFrq().add(input.readVInt());
-         }
-         //reqList.add(termFrq);
      }
-     input.close();
      Log.info("词频提取结束...");
      List<TermFrq> termFrqList = frqMap.values().stream()
              .map(obj -> (TermFrq) obj)
@@ -125,7 +132,7 @@ public class DocumentReader {
         Map<String,TermFrq> frqMap=new ConcurrentHashMap<String,TermFrq>();
 
         //词频位置
-        IndexReaderPage dfoReader=new IndexReaderPage(DocConstant.TERM_OFFSET_PATH);
+        IndexReaderPage dfoReader=new IndexReaderPage(DocConstant.getTermOffsetIndexPath());
         ChecksumIndexInput inputo=new ChecksumIndexInput(dfoReader);
         long length=inputo.getFilePointer();//文件长度
         if(length>0) {
@@ -155,7 +162,7 @@ public class DocumentReader {
                     currentPartition.add(nextPartition.get(0));
                 }
             }
-            File f=new File(DocConstant.TERM_FRQ_PATH);
+            File f=new File(DocConstant.getTermFreqPath());
             partitions.get( partitions.size()-1).add((int)f.length());
 
             // 创建固定大小的线程池
@@ -208,7 +215,7 @@ public class DocumentReader {
                 int start = termList.get(0);
                 int end=termList.get(termList.size()-1);
                 Log.info("线程 [{}] 索引位置：{}-{}", Thread.currentThread().getName(),start,end);
-                IndexReaderPage dfReaderPage=new IndexReaderPage(DocConstant.TERM_FRQ_PATH,(end-start));
+                IndexReaderPage dfReaderPage=new IndexReaderPage(DocConstant.getTermFreqPath(),(end-start));
                 //dfReaderPage.seek(start);
                 dfReaderPage.readAllFile2(start);
 
@@ -245,7 +252,7 @@ public class DocumentReader {
         Log.info("词位置开始提取...");
         long startTime = System.currentTimeMillis(); // 记录开始时间
         Map<String,TermOffset> toMap=new HashMap<String, TermOffset>();
-        IndexReader toReader=new IndexReader(DocConstant.TERM_OFFSET);
+        IndexReader toReader=new IndexReader(DocConstant.getTermOffsetPath());
         ChecksumIndexInput input=new ChecksumIndexInput(toReader);
         while(input.getFilePointer()>input.length()){
             String term=input.readString();
@@ -285,7 +292,7 @@ public class DocumentReader {
         Log.info("词位置开始提取...");
         long startTime = System.currentTimeMillis(); // 记录开始时间
         Map<String,TermOffset> toMap=new HashMap<String, TermOffset>();
-        IndexReader toReader=new IndexReader(DocConstant.TERM_OFFSET);
+        IndexReader toReader=new IndexReader(DocConstant.getTermOffsetPath());
         ChecksumIndexInput input=new ChecksumIndexInput(toReader);
         while(input.getFilePointer()>input.length()){
             String term=input.readString();
@@ -339,59 +346,62 @@ public class DocumentReader {
         Log.info("词位置开始提取...");
         long startTime = System.currentTimeMillis(); // 记录开始时间
         Map<String,TermOffset> toMap=new HashMap<String, TermOffset>();
-        IndexReader toReader=new IndexReader(DocConstant.TERM_OFFSET);
-        ChecksumIndexInput input=new ChecksumIndexInput(toReader);
-        ArrayList<PrefixCompression.CompressedTerm> compressedList=new ArrayList<PrefixCompression.CompressedTerm>();
-        while(input.getFilePointer()>input.length()){
-            int preLength=input.readVInt();
-            String prefix=input.readString();
-            PrefixCompression.CompressedTerm ct=new PrefixCompression.CompressedTerm(preLength,prefix);
-            compressedList.add(ct);
-            List<String> termList=PrefixCompression.decompressTerms(compressedList);
-            String term=termList.get(termList.size()-1);
-            if(compressedList.size()==2){
-                compressedList.clear();
-                compressedList.add(new PrefixCompression.CompressedTerm(0,term));
-            }
+        for(String tf:DocConstant.getTermOffsetPaths()) {
+            IndexReader toReader = new IndexReader(tf);
+            ChecksumIndexInput input = new ChecksumIndexInput(toReader);
+            ArrayList<PrefixCompression.CompressedTerm> compressedList = new ArrayList<PrefixCompression.CompressedTerm>();
+            while (input.getFilePointer() > input.length()) {
+                int preLength = input.readVInt();
+                String prefix = input.readString();
+                PrefixCompression.CompressedTerm ct = new PrefixCompression.CompressedTerm(preLength, prefix);
+                compressedList.add(ct);
+                List<String> termList = PrefixCompression.decompressTerms(compressedList);
+                String term = termList.get(termList.size() - 1);
+                if (compressedList.size() == 2) {
+                    compressedList.clear();
+                    compressedList.add(new PrefixCompression.CompressedTerm(0, term));
+                }
 //            String term=input.readString();
-            TermOffset to=toMap.get(term);
-            if(to==null){
-                to=new TermOffset();
-                toMap.put(term,to);
-            }
-            to.setTerm(term);
-            int size=input.readVInt();//词-域个数
-            for(int i=0;i<size;i++) {
-                String key=input.readString();//词-域
-                List<Integer>list=to.getFo().get(key);
-                if(null==list){
-                    list=new ArrayList<Integer>();
-                    to.getFo().put(key,list);
+                TermOffset to = toMap.get(term);
+                if (to == null) {
+                    to = new TermOffset();
+                    toMap.put(term, to);
                 }
-                byte flag=input.readByte();
-                if(flag==1){
-                    int m=input.readVInt();
-                    list.add(m);
-                    continue;
-                }
-                int first=input.readVInt();
-                int m=input.readVInt();
-                int offsetSize=input.readVInt();
-                final byte[] bytes = new byte[offsetSize];
-                input.readBytes(bytes, 0, offsetSize);
-                List<Integer> offsetNum=GolombCodec.decode(bytes,m);
-                offsetNum.add(0,first);
-                list.addAll(NumberUtil.restoreFromDifferences(offsetNum));
-                Log.info("词：{}，m:{},偏移量：{}，位置{}",term,m,offsetSize,Arrays.toString(list.toArray()));
+                to.setTerm(term);
+                int size = input.readVInt();//词-域个数
+                for (int i = 0; i < size; i++) {
+//                String key=input.readString();//词-域
+                    String key = input.readVInt() + ":" + input.readVInt();
+                    List<Integer> list = to.getFo().get(key);
+                    if (null == list) {
+                        list = new ArrayList<Integer>();
+                        to.getFo().put(key, list);
+                    }
+                    byte flag = input.readByte();
+                    if (flag == 1) {
+                        int m = input.readVInt();
+                        list.add(m);
+                        continue;
+                    }
+                    int first = input.readVInt();
+                    int m = input.readVInt();
+                    int offsetSize = input.readVInt();
+                    final byte[] bytes = new byte[offsetSize];
+                    input.readBytes(bytes, 0, offsetSize);
+                    List<Integer> offsetNum = GolombCodec.decode(bytes, m);
+                    offsetNum.add(0, first);
+                    list.addAll(NumberUtil.restoreFromDifferences(offsetNum));
+                    Log.info("词：{}，m:{},偏移量：{}，位置{}", term, m, offsetSize, Arrays.toString(list.toArray()));
 //                int lastPostion=0;
 //                for(int j=0;j<offsetSize;j++){
 //                    int diff=input.readVInt();
 //                    list.add(diff+lastPostion);
 //                    lastPostion+=diff;
 //                }
+                }
             }
+            input.close();
         }
-        input.close();
         Log.info("词位置提取结束...");
         Log.info("===词位置提取耗时：{}ms",(System.currentTimeMillis()-startTime)); // 记录开始时间);
         return toMap;

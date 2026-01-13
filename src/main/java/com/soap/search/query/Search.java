@@ -1,11 +1,11 @@
 package com.soap.search.query;
 
+import com.soap.search.analyzer.AnalyzerUtil;
 import com.soap.search.document.Document;
 import com.soap.search.document.TermFrq;
 import com.soap.search.store.DocumentReader;
-import com.soap.search.util.BM25Scorer;
-import com.soap.search.util.IKUtil;
-import com.soap.search.util.SkipList;
+import com.soap.search.algorithm.BM25Scorer;
+import com.soap.search.algorithm.SkipList;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -75,7 +75,7 @@ public class Search {
             Log.info("查询：{}", key);
             List<List<Integer>> docNums = new ArrayList<>();
             List<Integer> result = new ArrayList<>();
-            Set<String> strSet = IKUtil.strAnalyzer(key);
+            Set<String> strSet = AnalyzerUtil.strAnalyzer(key);
             for (String str : strSet) {
                 TermFrq node = skipList.getNode(str);
                 if (node != null) {
@@ -110,7 +110,7 @@ public class Search {
             //List<List<Integer>> docNums = new ArrayList<>();
             List<Integer> result = new ArrayList<>();
             Map<String,TermFrq> termFrqMap=new HashMap<>();
-            Set<String> strSet = IKUtil.strAnalyzer(key);
+            Set<String> strSet = AnalyzerUtil.strAnalyzer(key);
             for (String str : strSet) {
                 TermFrq node = skipList.getNode(str);
                 if (node != null) {

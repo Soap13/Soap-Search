@@ -1,14 +1,15 @@
 package com.soap.search.test;
 
+import com.soap.search.analyzer.AnalyzerUtil;
 import com.soap.search.document.*;
 import com.soap.search.query.Search;
 import com.soap.search.store.*;
-import com.soap.search.util.IKUtil;
-import com.soap.search.util.SkipList;
+import com.soap.search.algorithm.SkipList;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -30,9 +31,10 @@ public class FileTest {
         f.searchTerOffet();
 
 //        f.writerDoc("E:\\学习笔记\\写的文章\\Canal Adapter写不到ES问题排查_2025-03-23.md");
-//        f.writerDoc("D:/go_work/文章/小说/活着.txt");
-//        f.writerDoc("D:/go_work/文章/小说/围城.txt");
+//        f.writerDoc("E:/个人文件夹/小说/活着.txt");
+//        f.writerDoc("E:/个人文件夹/小说/围城.txt");
 //        f.writerDoc("E:/个人文件夹/小说/张爱玲文集.txt");
+//        f.writerDoc("E:/个人文件夹/小说/Java多线程编程.pdf");
 //        f.initDoc("E:/个人文件夹/小说");
         f.testSearch(false);
         f.printSearch();
@@ -176,10 +178,10 @@ public class FileTest {
 //        writer.writeTermOffSet(docList);
     }
 
-    public void testIK(){
+    public void testIK() throws IOException {
         Document doc=new Document();
         doc.initFile(new File("D:/go_work/文章/小说/活着.txt"));
-        Map<String, ArrayList<Integer>>termMap=IKUtil.IDAnalyzer(doc.getFields().get(2).getValue());
+        Map<String, ArrayList<Integer>>termMap= AnalyzerUtil.StringAnalyzer(doc.getFields().get(2).getValue());
         for(Map.Entry<String,ArrayList<Integer>> en:termMap.entrySet()){
             System.out.println(en.getKey()+" "+en.getValue().size());
         }
@@ -209,7 +211,7 @@ public class FileTest {
      * 测试文档编号内容写入
      */
     public void test3() throws IOException {
-        IndexWriter writer=new IndexWriter(DocConstant.DOC_PATH,false);
+        IndexWriter writer=new IndexWriter(DocConstant.getDocPath(),false);
         ChecksumIndexOutput output=new ChecksumIndexOutput(writer);
         output.writeInt(DocConstant.VERSION);//版本号
         BitSet bs=new BitSet(DocConstant.DOC_ID_LENGTH);

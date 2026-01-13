@@ -5,6 +5,7 @@ package com.soap.search.util;
  * @Date 2025/5/23 10:42
  * @Version 1.0
  */
+import java.sql.SQLOutput;
 import java.util.BitSet;
 
 public class ByteToBitSet {
@@ -46,12 +47,30 @@ public class ByteToBitSet {
         }
         return bitSet;
     }
-    public static void main(String[] args) {
-        byte b = (byte) 0b10101010; // 示例 byte 值
-        BitSet bitSet = convert(b);
+    public static long bitSetToLong(BitSet bs) {
+        long result = 0L;
+        // 只取前 64 位（long 最多 64 位）
+        for (int i = 0; i < Math.min(bs.length(), 64); i++) {
+            if (bs.get(i)) {
+                result |= (1L << i);
+            }
+        }
+        return result;
+    }
 
+    public static int bitSetToInt(BitSet bs) {
+        int len = bs.length();
+        if (len == 0) {
+            throw new IllegalStateException("BitSet is empty (no bits set)");
+        }
+        return len - 1;
+    }
+    public static void main(String[] args) {
+        byte b = (byte) 0b00001110; // 示例 byte 值
+        BitSet bitSet = convert(b);
+        bitSet.length();
         System.out.println("BitSet: " + bitSet); // 输出设置为 true 的位
         System.out.println("所有为1的位索引:");
-        bitSet.stream().forEach(System.out::println);
+        System.out.println(bitSetToInt(bitSet));
     }
 }

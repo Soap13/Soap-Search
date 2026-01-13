@@ -47,32 +47,23 @@
         </dependency>
 
         <dependency>
-            <groupId>cn.shenyanchao.ik-analyzer</groupId>
-            <artifactId>ik-analyzer</artifactId>
-            <version>9.0.0</version>
-            <!-- lucene包不要了 -->
-<!--            <exclusions>-->
-<!--                <exclusion>-->
-<!--                    <groupId>org.apache.lucene</groupId>-->
-<!--                    <artifactId>lucene-core</artifactId>-->
-<!--                </exclusion>-->
-<!--                <exclusion>-->
-<!--                    <groupId>org.apache.lucene</groupId>-->
-<!--                    <artifactId>lucene-analysis-common</artifactId>-->
-<!--                </exclusion>-->
-<!--                <exclusion>-->
-<!--                    <groupId>org.apache.lucene</groupId>-->
-<!--                    <artifactId>lucene-queries</artifactId>-->
-<!--                </exclusion>-->
-<!--                <exclusion>-->
-<!--                    <groupId>org.apache.lucene</groupId>-->
-<!--                    <artifactId>lucene-queryparser</artifactId>-->
-<!--                </exclusion>-->
-<!--                <exclusion>-->
-<!--                    <groupId>org.apache.lucene</groupId>-->
-<!--                    <artifactId>lucene-sandbox</artifactId>-->
-<!--                </exclusion>-->
-<!--            </exclusions>-->
+            <groupId>org.lionsoul</groupId>
+            <artifactId>jcseg-core</artifactId>
+            <version>2.6.3</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.commonmark/commonmark -->
+        <dependency>
+            <groupId>org.commonmark</groupId>
+            <artifactId>commonmark</artifactId>
+            <version>0.27.0</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.apache.pdfbox/pdfbox -->
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox</artifactId>
+            <version>3.0.6</version>
         </dependency>
     </dependencies>
 

@@ -22,6 +22,7 @@ public class IndexReader extends IndexInput {
             raf = new RandomAccessFile(fieldPath, "r");
         }else{
             Log.error("词频文件:{},不存在创建",fieldPath);
+            throw new IOException("词频文件:"+fieldPath+",不存在创建");
         }
         currentBuffer = new byte[IndexWriter.BUFFER_SIZE];
         currentBufferIndex = 0;

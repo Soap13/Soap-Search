@@ -17,7 +17,7 @@ import java.util.BitSet;
 public class DocumentCommon {
     private static final Logger Log = LogManager.getLogger(DocumentCommon.class);
     public static BitSet getCurrentDocNum() throws IOException {
-        return getCurrentDocNum(DocConstant.DOC_PATH);
+        return getCurrentDocNum(DocConstant.getDocPath());
     }
     public static BitSet getCurrentDocNum(String filePath) throws IOException {
         Log.info("读取文档路径:{}",filePath);
@@ -27,7 +27,7 @@ public class DocumentCommon {
             return new BitSet();
         }
         //首先到当前已有的文档编号
-        IndexReader reader = new IndexReader(DocConstant.DOC_PATH);
+        IndexReader reader = new IndexReader(DocConstant.getDocPath());
         ChecksumIndexInput input = new ChecksumIndexInput(reader);
         //得到数据长度
         int version = input.readInt();

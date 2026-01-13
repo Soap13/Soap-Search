@@ -1,11 +1,11 @@
 package com.soap.search.store;
 
-import com.soap.algorithm.PrefixCompression;
+import com.soap.search.algorithm.PrefixCompression;
+import com.soap.search.analyzer.AnalyzerUtil;
 import com.soap.search.document.DocConstant;
 import com.soap.search.document.Document;
 import com.soap.search.document.Field;
 import com.soap.search.document.TermFrq;
-import com.soap.search.util.IKUtil;
 import com.soap.search.util.NumberUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -23,8 +23,8 @@ public class DocumentWriter {
     private BitSet bs;
     private int curentDocNum=-1;
 
- public void writeDocument(Document doc) throws IOException {
-     File docFile=new File(DocConstant.DOC_PATH);
+ public int writeDocument(Document doc) throws IOException {
+     File docFile=new File(DocConstant.getDocPath());
      if(!docFile.exists()){
          initDocNum(0);
          this.bs=new BitSet(1);
@@ -49,6 +49,7 @@ public class DocumentWriter {
          initDocFieldPosition(curentDocNum,(int)position);
          Log.info("文档编号:{},域关联设置结束",curentDocNum);
      }
+     return curentDocNum;
  }
 
     /**
@@ -59,7 +60,7 @@ public class DocumentWriter {
  public void initDocNum(int docNum) throws IOException {
      Log.info("init 文档编号:{}",docNum);
      BitSet currBS=DocumentCommon.getCurrentDocNum();
-     IndexWriter initDoc=new IndexWriter(DocConstant.DOC_PATH,false);
+     IndexWriter initDoc=new IndexWriter(DocConstant.getDocPath(),false);
      ChecksumIndexOutput output=new ChecksumIndexOutput(initDoc);
      output.writeInt(DocConstant.VERSION);//版本号
      //BitSet bs=new BitSet(DocConstant.DOC_ID_LENGTH);
@@ -79,7 +80,7 @@ public class DocumentWriter {
      */
  public long initField(Document doc,boolean isAppend) throws IOException {
      //写域信息
-     IndexWriter writer=new IndexWriter(DocConstant.FIELD_PATH,isAppend);
+     IndexWriter writer=new IndexWriter(DocConstant.getFieldPath(),isAppend);
      ChecksumIndexOutput output=new ChecksumIndexOutput(writer);
      long position = output.getFilePointer();//得到位置
      output.writeInt(doc.getFields().size());//写域的总数
@@ -100,7 +101,7 @@ public class DocumentWriter {
 
  public void initDocFieldPosition(int docNum,int fieldPostion) throws IOException { //写关联关系表
      Log.info("文档编号:{},域的开始地址:{}",docNum,fieldPostion);
-     IndexWriter writerDF=new IndexWriter(DocConstant.DOC_FIELD_PATH,true);
+     IndexWriter writerDF=new IndexWriter(DocConstant.getDocFieldPath(),true);
      ChecksumIndexOutput outputDF=new ChecksumIndexOutput(writerDF);
      //outputDF.seek((docNum-1)*4); //写数据跳转这里被限制住了
      outputDF.writeInt(fieldPostion);
@@ -123,7 +124,7 @@ public class DocumentWriter {
          for (int i = 0; i < doc.getFields().size(); i++) {
              Field f = doc.getFields().get(i);
              if (f.isAnalyzed()) { //是否分词
-                 termMap = IKUtil.IDAnalyzer(f.getValue());
+                 termMap = AnalyzerUtil.StringAnalyzer(f.getValue());
                  for (Map.Entry<String, ArrayList<Integer>> en : termMap.entrySet()) {
                     Log.info(en.getKey() + " " + en.getValue().size());
                  }
@@ -143,11 +144,11 @@ public class DocumentWriter {
          termMap.clear();
      }
      Log.info("词频开始写入...");
-     IndexWriter writerDF = new IndexWriter(DocConstant.TERM_FRQ_PATH, true);
+     IndexWriter writerDF = new IndexWriter(DocConstant.getTermFreqPath(), true);
      ChecksumIndexOutput outputDF = new ChecksumIndexOutput(writerDF);
 
      //词位置
-     IndexWriter writerDFO = new IndexWriter(DocConstant.TERM_OFFSET_PATH, true);
+     IndexWriter writerDFO = new IndexWriter(DocConstant.getTermOffsetIndexPath(), true);
      ChecksumIndexOutput outputDFO = new ChecksumIndexOutput(writerDFO);
 
      for (TermFrq tf:reqList) {
@@ -180,7 +181,7 @@ public class DocumentWriter {
          for (int i = 0; i < doc.getFields().size(); i++) {
              Field f = doc.getFields().get(i);
              if (f.isAnalyzed()) { //是否分词
-                 termMap = IKUtil.IDAnalyzer(f.getValue());
+                 termMap = AnalyzerUtil.StringAnalyzer(f.getValue());
 //                 for (Map.Entry<String, ArrayList<Integer>> en : termMap.entrySet()) {
 //                     Log.info(en.getKey() + " " + en.getValue().size());
 //                 }
@@ -215,7 +216,7 @@ public class DocumentWriter {
          }
      }
      Log.info("词位置开始写入...");
-     IndexWriter writerDF = new IndexWriter(DocConstant.TERM_OFFSET, true);
+     IndexWriter writerDF = new IndexWriter(DocConstant.getTermOffsetPath(), true);
      ChecksumIndexOutput outputDF = new ChecksumIndexOutput(writerDF);
      for(Map.Entry<String,Map<String,List<Integer>>> en:termOffset.entrySet()){
          String term=en.getKey();
@@ -252,7 +253,7 @@ public class DocumentWriter {
             for (int i = 0; i < doc.getFields().size(); i++) {
                 Field f = doc.getFields().get(i);
                 if (f.isAnalyzed()) { //是否分词
-                    termMap = IKUtil.IDAnalyzer(f.getValue());
+                    termMap = AnalyzerUtil.StringAnalyzer(f.getValue());
 //                 for (Map.Entry<String, ArrayList<Integer>> en : termMap.entrySet()) {
 //                     Log.info(en.getKey() + " " + en.getValue().size());
 //                 }
@@ -287,7 +288,7 @@ public class DocumentWriter {
             }
         }
         Log.info("词位置开始写入...");
-        IndexWriter writerDF = new IndexWriter(DocConstant.TERM_OFFSET, true);
+        IndexWriter writerDF = new IndexWriter(DocConstant.getTermOffsetPath(), true);
         ChecksumIndexOutput outputDF = new ChecksumIndexOutput(writerDF);
         for(Map.Entry<String,Map<String,List<Integer>>> en:termOffset.entrySet()){
             String term=en.getKey();
@@ -340,7 +341,7 @@ public class DocumentWriter {
             for (int i = 0; i < doc.getFields().size(); i++) {
                 Field f = doc.getFields().get(i);
                 if (f.isAnalyzed()) { //是否分词
-                    termMap = IKUtil.IDAnalyzer(f.getValue());
+                    termMap = AnalyzerUtil.StringAnalyzer(f.getValue());
 //                 for (Map.Entry<String, ArrayList<Integer>> en : termMap.entrySet()) {
 //                     Log.info(en.getKey() + " " + en.getValue().size());
 //                 }
@@ -360,14 +361,8 @@ public class DocumentWriter {
 
                 String termOf=doc.getDocNum()+":"+i;
                 for(Map.Entry<String,ArrayList<Integer>> en:copyMap.entrySet()){
-                    Map<String,List<Integer>> position=termOffset.get(en.getKey());
-                    if(position==null){
-                        position=new HashMap<>();
-                        termOffset.put(en.getKey(),position);
-                    }
-                    if(null==position.get(termOf)){
-                        position.put(termOf,new ArrayList<Integer>());
-                    }
+                    Map<String,List<Integer>> position=termOffset.computeIfAbsent(en.getKey(), k -> new HashMap<>());
+                    position.computeIfAbsent(termOf, k -> new ArrayList<>());
                     position.get(termOf).addAll(en.getValue());//注意顺序
                     termOffset.put(en.getKey(),position);
                 }
@@ -379,7 +374,7 @@ public class DocumentWriter {
         ArrayList<String> termList=new ArrayList<>(termSet);
         Collections.sort(termList);
         List<PrefixCompression.CompressedTerm> compressedList =PrefixCompression.compressTerms(termList);
-        IndexWriter writerDF = new IndexWriter(DocConstant.TERM_OFFSET, true);
+        IndexWriter writerDF = new IndexWriter(DocConstant.getTermOffsetPath(), true);
         ChecksumIndexOutput outputDF = new ChecksumIndexOutput(writerDF);
         for(int i=0;i<termList.size();i++){
         //for(Map.Entry<String,Map<String,List<Integer>>> en:termOffset.entrySet()){
@@ -391,7 +386,10 @@ public class DocumentWriter {
             outputDF.writeVInt(termOffset.get(term).keySet().size());//域个数
             for(Map.Entry<String,List<Integer>> en1:termOffset.get(term).entrySet()){
                 String df=en1.getKey();
-                outputDF.writeString(df);
+//                outputDF.writeString(df);
+                String dfOf[]=df.split(":");
+                outputDF.writeVInt(Integer.parseInt(dfOf[0]));
+                outputDF.writeVInt(Integer.parseInt(dfOf[1]));
                 if(en1.getValue().size()==1){//1个数的时候
                     outputDF.writeByte((byte)1);
                     outputDF.writeVInt(en1.getValue().get(0));
@@ -408,15 +406,7 @@ public class DocumentWriter {
                 outputDF.writeVInt(m);
                 outputDF.writeVInt(offByte.length);
                 outputDF.writeBytes(offByte,offByte.length);
-//                int last=0;
-//                outputDF.writeVInt(en1.getValue().size());
-//                for(int i=0;i<en1.getValue().size();i++){
-//                    int current=en1.getValue().get(i)-last;
-//                    outputDF.writeVInt(current);
-//                    last=en1.getValue().get(i);
-//                }
             }
-//            }
         }
         outputDF.close();
         Log.info("词位置写入结束...");
